@@ -4,5 +4,5 @@ import club.tempvs.user.domain.User;
 
 public interface UserService {
 
-    User register(String email, String password);
+    User register(String verificationId, String password);
 }

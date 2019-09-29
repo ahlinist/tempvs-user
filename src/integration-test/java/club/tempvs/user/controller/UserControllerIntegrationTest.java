@@ -1,5 +1,7 @@
 package club.tempvs.user.controller;
 
+import club.tempvs.user.dao.EmailVerificationRepository;
+import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.dto.TempvsPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -35,20 +37,52 @@ public class UserControllerIntegrationTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private EmailVerificationRepository emailVerificationRepository;
+
     @Test
-    public void testGetWelcomePage() throws Exception {
-        Long id = 1L;
-        String userInfoValue = buildUserInfoValue(id);
-        File createUserFile = ResourceUtils.getFile("classpath:user/create.json");
-        String createUserJson = new String(Files.readAllBytes(createUserFile.toPath()));
+    public void testRegister() throws Exception {
+        File registerFile = ResourceUtils.getFile("classpath:user/register.json");
+        String registerJson = new String(Files.readAllBytes(registerFile.toPath()));
 
         mvc.perform(post("/api/register")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(registerJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                    .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testVerifyForMissingVerification() throws Exception {
+        File createUserFile = ResourceUtils.getFile("classpath:user/verify.json");
+        String createUserJson = new String(Files.readAllBytes(createUserFile.toPath()));
+
+        mvc.perform(post("/api/verify")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(createUserJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                    .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testVerify() throws Exception {
+        String verificationId = "verificationId";
+        String email = "test@email.com";
+        EmailVerification emailVerification = new EmailVerification(email, verificationId);
+        emailVerificationRepository.saveAndFlush(emailVerification);
+
+        File createUserFile = ResourceUtils.getFile("classpath:user/verify.json");
+        String createUserJson = new String(Files.readAllBytes(createUserFile.toPath()));
+
+        mvc.perform(post("/api/verify/" + verificationId)
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(createUserJson)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("email", is("test@email.com")))
+                    .andExpect(jsonPath("email", is(email)))
                     .andExpect(jsonPath("currentProfileId", isEmptyOrNullString()))
                     .andExpect(jsonPath("timeZone", isEmptyOrNullString()))
                     .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
