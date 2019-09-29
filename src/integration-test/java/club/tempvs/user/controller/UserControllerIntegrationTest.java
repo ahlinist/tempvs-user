@@ -50,7 +50,8 @@ public class UserControllerIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("email", is("test@email.com")))
                     .andExpect(jsonPath("currentProfileId", isEmptyOrNullString()))
-                    .andExpect(jsonPath("timeZone", isEmptyOrNullString()));
+                    .andExpect(jsonPath("timeZone", isEmptyOrNullString()))
+                    .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
     }
 
     private String buildUserInfoValue(Long id) throws Exception {
