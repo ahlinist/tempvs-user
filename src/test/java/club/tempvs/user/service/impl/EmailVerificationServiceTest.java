@@ -3,6 +3,7 @@ package club.tempvs.user.service.impl;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
+import club.tempvs.user.component.EmailSender;
 import club.tempvs.user.dao.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.exception.VerificationAlreadyExistsException;
@@ -23,6 +24,8 @@ public class EmailVerificationServiceTest {
 
     @Mock
     private EmailVerificationRepository emailVerificationRepository;
+    @Mock
+    private EmailSender emailSender;
 
     @Mock
     private EmailVerification emailVerification;
@@ -37,8 +40,9 @@ public class EmailVerificationServiceTest {
         EmailVerification result = emailVerificationService.create(email);
 
         verify(emailVerificationRepository).findByEmailIgnoreCase(email);
+        verify(emailSender).sendRegistrationVerification(eq(email), anyString());
         verify(emailVerificationRepository).save(any(EmailVerification.class));
-        verifyNoMoreInteractions(emailVerificationRepository);
+        verifyNoMoreInteractions(emailVerificationRepository, emailSender);
 
         assertEquals("Email verification object is returned", emailVerification, result);
     }

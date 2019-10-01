@@ -1,5 +1,6 @@
 package club.tempvs.user.controller;
 
+import club.tempvs.user.amqp.EmailEventProcessor;
 import club.tempvs.user.dao.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.dto.TempvsPrincipal;
@@ -9,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.test.binder.MessageCollector;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -39,6 +43,10 @@ public class UserControllerIntegrationTest {
 
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
+    @Autowired
+    private MessageCollector messageCollector;
+    @Autowired
+    private EmailEventProcessor emailEventProcessor;
 
     @Test
     public void testRegister() throws Exception {
@@ -86,6 +94,12 @@ public class UserControllerIntegrationTest {
                     .andExpect(jsonPath("currentProfileId", isEmptyOrNullString()))
                     .andExpect(jsonPath("timeZone", isEmptyOrNullString()))
                     .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
+
+        Message<String> received = (Message<String>) messageCollector.forChannel(emailEventProcessor.send()).poll();
+        assertThat(received.getPayload(), containsString("test@email.com"));
+        assertThat(received.getPayload(), containsString("Registration at Tempvs"));
+        assertThat(received.getPayload(), containsString("Greetings at Tempvs! To finish your registration follow the link below(valid for 24 hours):"));
+        assertThat(received.getPayload(), containsString("http://localhost:8080/registration/"));
     }
 
     private String buildUserInfoValue(Long id) throws Exception {

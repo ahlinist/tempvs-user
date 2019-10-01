@@ -67,3 +67,5 @@ eureka:
   instance:
     homePageUrl: http://${eureka.instance.hostname}:8088/
     non-secure-port: 8088
+email:
+  base-url: ${EMAIL_HOST:http://localhost:8080}

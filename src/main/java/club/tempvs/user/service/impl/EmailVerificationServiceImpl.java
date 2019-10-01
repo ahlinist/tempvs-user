@@ -1,5 +1,6 @@
 package club.tempvs.user.service.impl;
 
+import club.tempvs.user.component.EmailSender;
 import club.tempvs.user.dao.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.exception.VerificationAlreadyExistsException;
@@ -22,6 +23,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     private static final String DIGEST_ALGORITHM = "MD5";
 
     private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailSender emailSender;
 
     @Override
     @SneakyThrows
@@ -35,7 +37,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         digest.update(verificationSequence.getBytes());
         String verificationId = DatatypeConverter.printHexBinary(digest.digest());
 
-        //TODO: send an email (use amqp)
+        emailSender.sendRegistrationVerification(email, verificationId);
         EmailVerification verification = new EmailVerification(email, verificationId);
         return save(verification);
     }

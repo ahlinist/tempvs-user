@@ -10,3 +10,5 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
 authorization:
   token: security_token
+email:
+  base-url: http://localhost:8080
