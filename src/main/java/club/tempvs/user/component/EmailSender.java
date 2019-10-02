@@ -27,7 +27,7 @@ public class EmailSender {
     private final EmailEventProcessor emailEventProcessor;
 
     @Setter
-    @Value("${email.base-url}")
+    @Value("${app.base-url}")
     private String baseUrl;
 
     public void sendRegistrationVerification(String email, String verificationId) {
