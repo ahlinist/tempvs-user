@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@Entity
 @NoArgsConstructor
+@Entity(name = "app_user")
 public class User {
 
     @Id

@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1570039936946-1
+    id: 1570124653014-1
     author: albvs (generated)
     changes:
     - createTable:
@@ -9,30 +9,7 @@ databaseChangeLog:
             autoIncrement: true
             constraints:
               primaryKey: true
-              primaryKeyName: email_verificationPK
-            name: id
-            type: BIGINT
-        - column:
-            name: created_date
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: email
-            type: VARCHAR(255)
-        - column:
-            name: verification_id
-            type: VARCHAR(255)
-        tableName: email_verification
-- changeSet:
-    id: 1570039936946-2
-    author: albvs (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            autoIncrement: true
-            constraints:
-              primaryKey: true
-              primaryKeyName: userPK
+              primaryKeyName: app_userPK
             name: id
             type: BIGINT
         - column:
@@ -59,9 +36,9 @@ databaseChangeLog:
         - column:
             name: time_zone
             type: VARCHAR(255)
-        tableName: user
+        tableName: app_user
 - changeSet:
-    id: 1570039936946-3
+    id: 1570124653014-2
     author: albvs (generated)
     changes:
     - createTable:
@@ -69,31 +46,54 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            name: user_id
+            name: app_user_id
             type: BIGINT
         - column:
             name: roles
             type: VARCHAR(255)
-        tableName: user_roles
+        tableName: app_user_roles
 - changeSet:
-    id: 1570039936946-4
+    id: 1570124653014-3
+    author: albvs (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: email_verificationPK
+            name: id
+            type: BIGINT
+        - column:
+            name: created_date
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: email
+            type: VARCHAR(255)
+        - column:
+            name: verification_id
+            type: VARCHAR(255)
+        tableName: email_verification
+- changeSet:
+    id: 1570124653014-4
     author: albvs (generated)
     changes:
     - addUniqueConstraint:
         columnNames: email
-        constraintName: UC_USEREMAIL_COL
-        tableName: user
+        constraintName: UC_APP_USEREMAIL_COL
+        tableName: app_user
 - changeSet:
-    id: 1570039936946-5
+    id: 1570124653014-5
     author: albvs (generated)
     changes:
     - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: user_roles
-        constraintName: FK55itppkw3i07do3h7qoclqd4k
+        baseColumnNames: app_user_id
+        baseTableName: app_user_roles
+        constraintName: FKkwxexnudtp5gmt82j0qtytnoe
         deferrable: false
         initiallyDeferred: false
         referencedColumnNames: id
-        referencedTableName: user
+        referencedTableName: app_user
         validate: true
 
