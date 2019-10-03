@@ -9,4 +9,6 @@ public interface EmailVerificationService {
     EmailVerification get(String id);
 
     void delete(EmailVerification emailVerification);
+
+    void cleanupDayBack();
 }

@@ -69,3 +69,5 @@ eureka:
     non-secure-port: 8088
 app:
   base-url: ${APP_HOST:http://localhost:8080}
+scheduling:
+  enabled: true

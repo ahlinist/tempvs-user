@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 import club.tempvs.user.component.EmailSender;
 import club.tempvs.user.dao.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
-import club.tempvs.user.exception.VerificationAlreadyExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,26 +33,15 @@ public class EmailVerificationServiceTest {
     public void testCreate() {
         String email = "test@email.com";
 
-        when(emailVerificationRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.empty());
         when(emailVerificationRepository.save(any(EmailVerification.class))).thenReturn(emailVerification);
 
         EmailVerification result = emailVerificationService.create(email);
 
-        verify(emailVerificationRepository).findByEmailIgnoreCase(email);
         verify(emailSender).sendRegistrationVerification(eq(email), anyString());
         verify(emailVerificationRepository).save(any(EmailVerification.class));
         verifyNoMoreInteractions(emailVerificationRepository, emailSender);
 
         assertEquals("Email verification object is returned", emailVerification, result);
-    }
-
-    @Test(expected = VerificationAlreadyExistsException.class)
-    public void testCreateForDuplicate() {
-        String email = "test@email.com";
-
-        when(emailVerificationRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(emailVerification));
-
-        emailVerificationService.create(email);
     }
 
     @Test
