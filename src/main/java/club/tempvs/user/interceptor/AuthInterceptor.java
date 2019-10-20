@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String userInfoHeaderValue = request.getHeader(USER_INFO_HEADER);
 
-        if (userInfoHeaderValue != null) {
+        if (!StringUtils.isEmpty(userInfoHeaderValue)) {
             response.setHeader(USER_INFO_HEADER, userInfoHeaderValue);
 
             TempvsPrincipal principal = objectMapper.readValue(userInfoHeaderValue, TempvsPrincipal.class);
