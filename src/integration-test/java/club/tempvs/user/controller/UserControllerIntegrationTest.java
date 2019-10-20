@@ -62,6 +62,16 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
+    public void testRegisterForInvalidPayload() throws Exception {
+        mvc.perform(post("/api/register")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("{\"email\": \"asd.com\"}")
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void testVerifyForMissingVerification() throws Exception {
         File createUserFile = ResourceUtils.getFile("classpath:user/verify.json");
         String createUserJson = new String(Files.readAllBytes(createUserFile.toPath()));

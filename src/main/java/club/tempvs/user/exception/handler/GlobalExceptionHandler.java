@@ -4,6 +4,7 @@ import club.tempvs.user.exception.UnauthorizedException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -18,8 +19,8 @@ import static org.springframework.http.HttpStatus.*;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> returnBadRequest(IllegalArgumentException e) {
+    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
+    public ResponseEntity<String> returnBadRequest(Exception e) {
         processException(e);
         return ResponseEntity.badRequest().body(e.getMessage());
     }
@@ -45,6 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HystrixRuntimeException.class)
     @ResponseStatus(SERVICE_UNAVAILABLE)
     public ResponseEntity<String> returnServiceUnavailable(HystrixRuntimeException e) {
+        processException(e);
         return ResponseEntity.status(SERVICE_UNAVAILABLE).build();
     }
 
