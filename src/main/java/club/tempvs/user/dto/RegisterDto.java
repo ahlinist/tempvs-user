@@ -10,7 +10,7 @@ import javax.validation.constraints.Null;
 @Data
 public class RegisterDto {
 
-    @Email
+    @Email(groups = Scope.Register.class)
     @Null(groups = Scope.Verify.class)
     @NotNull(groups = Scope.Register.class)
     private String email;
