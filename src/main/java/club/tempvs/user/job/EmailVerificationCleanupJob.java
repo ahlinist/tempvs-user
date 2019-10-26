@@ -17,7 +17,6 @@ public class EmailVerificationCleanupJob {
 
     @Scheduled(fixedRate = ONE_HOUR_IN_MS, initialDelay = ONE_HOUR_IN_MS)
     public void execute() {
-        System.out.println("Running!");
         emailVerificationService.cleanupDayBack();
     }
 }
