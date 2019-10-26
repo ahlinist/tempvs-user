@@ -3,6 +3,7 @@ package club.tempvs.user.service.impl;
 import club.tempvs.user.component.EmailSender;
 import club.tempvs.user.dao.EmailVerificationDao;
 import club.tempvs.user.dao.UserDao;
+import club.tempvs.user.exception.UserAlreadyExistsException;
 import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.service.EmailVerificationService;
@@ -10,10 +11,8 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
@@ -35,7 +34,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     @SneakyThrows
     public EmailVerification create(String email) {
         if (userDao.get(email).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, email);
+            throw new UserAlreadyExistsException(email);
         }
 
         String verificationSequence = email + Instant.now().toEpochMilli();

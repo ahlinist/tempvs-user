@@ -8,12 +8,12 @@ import club.tempvs.user.dao.EmailVerificationDao;
 import club.tempvs.user.dao.UserDao;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.domain.User;
+import club.tempvs.user.exception.UserAlreadyExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -50,7 +50,7 @@ public class EmailVerificationServiceTest {
         assertEquals("Email verification object is returned", emailVerification, result);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test(expected = UserAlreadyExistsException.class)
     public void testCreateForExisting() {
         String email = "test@email.com";
         Optional<User> userOptional = Optional.of(user);
