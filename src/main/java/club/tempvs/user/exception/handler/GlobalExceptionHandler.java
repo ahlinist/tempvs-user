@@ -1,6 +1,5 @@
 package club.tempvs.user.exception.handler;
 
-import club.tempvs.user.exception.UnauthorizedException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,18 +28,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> returnNotFound(NoSuchElementException e) {
         processException(e);
         return ResponseEntity.notFound().build();
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> returnInternalError(Exception e) {
-        processException(e);
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).build();
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<String> returnUnauthorized(UnauthorizedException e) {
-        processException(e);
-        return ResponseEntity.status(UNAUTHORIZED).build();
     }
 
     @ExceptionHandler(HystrixRuntimeException.class)

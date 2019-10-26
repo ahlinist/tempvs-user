@@ -1,4 +1,4 @@
-package club.tempvs.user.dao;
+package club.tempvs.user.repository;
 
 import club.tempvs.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

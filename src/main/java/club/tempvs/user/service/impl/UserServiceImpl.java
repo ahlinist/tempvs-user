@@ -1,55 +1,41 @@
 package club.tempvs.user.service.impl;
 
-import club.tempvs.user.dao.UserRepository;
+import club.tempvs.user.dao.EmailVerificationDao;
+import club.tempvs.user.dao.UserDao;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.domain.User;
-import club.tempvs.user.exception.UserAlreadyExistsException;
-import club.tempvs.user.service.EmailVerificationService;
 import club.tempvs.user.service.UserService;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+    private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
+    private final EmailVerificationDao emailVerificationDao;
 
     @Override
     @Transactional
     public User register(String verificationId, String password) {
-        EmailVerification emailVerification = emailVerificationService.get(verificationId);
+        EmailVerification emailVerification = emailVerificationDao.get(verificationId)
+                .orElseThrow(NoSuchElementException::new);
         String email = emailVerification.getEmail();
-        emailVerificationService.delete(emailVerification);
+        emailVerificationDao.delete(emailVerification);
 
-        if (find(email).isPresent()) {
-            throw new UserAlreadyExistsException();
+        if (userDao.get(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, email);
         }
 
         String encodedPassword = passwordEncoder.encode(password);
         User user = new User(email, encodedPassword);
-        return save(user);
-    }
-
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    private User save(User user) {
-        return userRepository.save(user);
-    }
-
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    private Optional<User> find(String email) {
-        return userRepository.findByEmailIgnoreCase(email);
+        return userDao.save(user);
     }
 }

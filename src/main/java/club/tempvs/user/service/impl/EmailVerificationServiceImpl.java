@@ -1,21 +1,24 @@
 package club.tempvs.user.service.impl;
 
 import club.tempvs.user.component.EmailSender;
-import club.tempvs.user.dao.EmailVerificationRepository;
+import club.tempvs.user.dao.EmailVerificationDao;
+import club.tempvs.user.dao.UserDao;
+import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.service.EmailVerificationService;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +28,16 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailSender emailSender;
+    private final UserDao userDao;
+    private final EmailVerificationDao emailVerificationDao;
 
     @Override
     @SneakyThrows
     public EmailVerification create(String email) {
+        if (userDao.get(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, email);
+        }
+
         String verificationSequence = email + Instant.now().toEpochMilli();
         MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
         digest.update(verificationSequence.getBytes());
@@ -36,7 +45,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
         emailSender.sendRegistrationVerification(email, verificationId);
         EmailVerification verification = new EmailVerification(email, verificationId);
-        return save(verification);
+        return emailVerificationDao.save(verification);
     }
 
     @Override
@@ -48,35 +57,5 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         Duration day = Duration.ofDays(1);
         Instant retentionTime = Instant.now().minus(day);
         emailVerificationRepository.cleanupDayBack(retentionTime);
-    }
-
-    @Override
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    public EmailVerification get(String id) {
-        return emailVerificationRepository.findByVerificationId(id).get();
-    }
-
-    @Override
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    public void delete(EmailVerification emailVerification) {
-        emailVerificationRepository.delete(emailVerification);
-    }
-
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    private EmailVerification save(EmailVerification emailVerification) {
-        return emailVerificationRepository.save(emailVerification);
-    }
-
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
-    })
-    private Optional<EmailVerification> find(String email) {
-        return emailVerificationRepository.findByEmailIgnoreCase(email);
     }
 }

@@ -6,9 +6,5 @@ public interface EmailVerificationService {
 
     EmailVerification create(String email);
 
-    EmailVerification get(String id);
-
-    void delete(EmailVerification emailVerification);
-
     void cleanupDayBack();
 }

@@ -1,9 +1,12 @@
 package club.tempvs.user.controller;
 
 import club.tempvs.user.amqp.EmailEventProcessor;
-import club.tempvs.user.dao.EmailVerificationRepository;
+import club.tempvs.user.domain.User;
+import club.tempvs.user.dto.RegisterDto;
+import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.dto.TempvsPrincipal;
+import club.tempvs.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 public class UserControllerIntegrationTest {
 
-    private static final String USER_INFO_HEADER = "User-Info";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String TOKEN = "df41895b9f26094d0b1d39b7bdd9849e"; //security_token as MD5
 
@@ -43,6 +45,8 @@ public class UserControllerIntegrationTest {
 
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private MessageCollector messageCollector;
     @Autowired
@@ -59,6 +63,24 @@ public class UserControllerIntegrationTest {
                 .content(registerJson)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                     .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testRegisterForExistingUser() throws Exception {
+        File registerFile = ResourceUtils.getFile("classpath:user/register.json");
+        String registerJson = new String(Files.readAllBytes(registerFile.toPath()));
+
+        RegisterDto registerDto = mapper.readValue(registerFile, RegisterDto.class);
+
+        User user = new User(registerDto.getEmail(), "password");
+        userRepository.save(user);
+
+        mvc.perform(post("/api/register")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(registerJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -110,12 +132,5 @@ public class UserControllerIntegrationTest {
         assertThat(received.getPayload(), containsString("Registration at Tempvs"));
         assertThat(received.getPayload(), containsString("Greetings at Tempvs! To finish your registration follow the link below(valid for 24 hours):"));
         assertThat(received.getPayload(), containsString("http://localhost:8080/user/registration/"));
-    }
-
-    private String buildUserInfoValue(Long id) throws Exception {
-        TempvsPrincipal principal = new TempvsPrincipal();
-        principal.setUserId(id);
-        principal.setLang("en");
-        return mapper.writeValueAsString(principal);
     }
 }
