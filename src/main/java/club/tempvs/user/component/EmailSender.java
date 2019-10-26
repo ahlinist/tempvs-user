@@ -20,7 +20,7 @@ public class EmailSender {
     private static final String REGISTRATION_MESSAGE = "user.registration.email.body.message";
     private static final String REGISTRATION_BUTTON_TEXT = "user.registration.email.body.button";
 
-    private static final String VERIFICATION_URL = "/registration/";
+    private static final String VERIFICATION_URL = "/user/registration/";
 
     private final MessageSource messageSource;
     private final EmailBuilder emailBuilder;

@@ -48,7 +48,7 @@ public class EmailSenderTest {
         String baseUrl = "http://localhost:8080";
         emailSender.setBaseUrl(baseUrl);
         String verificationId = "verificationId";
-        String link = baseUrl + "/registration/" + verificationId;
+        String link = baseUrl + "/user/registration/" + verificationId;
         String emailBody = "body";
 
         when(messageSource.getMessage(subject, null, subject, locale)).thenReturn(subject);

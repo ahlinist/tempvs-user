@@ -109,7 +109,7 @@ public class UserControllerIntegrationTest {
         assertThat(received.getPayload(), containsString("test@email.com"));
         assertThat(received.getPayload(), containsString("Registration at Tempvs"));
         assertThat(received.getPayload(), containsString("Greetings at Tempvs! To finish your registration follow the link below(valid for 24 hours):"));
-        assertThat(received.getPayload(), containsString("http://localhost:8080/registration/"));
+        assertThat(received.getPayload(), containsString("http://localhost:8080/user/registration/"));
     }
 
     private String buildUserInfoValue(Long id) throws Exception {
