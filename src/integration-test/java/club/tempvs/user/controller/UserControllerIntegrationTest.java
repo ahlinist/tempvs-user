@@ -5,7 +5,6 @@ import club.tempvs.user.domain.User;
 import club.tempvs.user.dto.RegisterDto;
 import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
-import club.tempvs.user.dto.TempvsPrincipal;
 import club.tempvs.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;

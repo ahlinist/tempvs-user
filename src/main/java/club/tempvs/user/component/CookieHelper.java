@@ -1,7 +1,7 @@
 package club.tempvs.user.component;
 
 import club.tempvs.user.domain.User;
-import club.tempvs.user.dto.TempvsPrincipal;
+import club.tempvs.user.dto.AuthCookieDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -22,10 +22,10 @@ public class CookieHelper {
 
     @SneakyThrows
     public Cookie buildAuthCookie(User user) {
-        TempvsPrincipal principal = mvcConversionService.convert(user, TempvsPrincipal.class);
-        String stringPrincipal = objectMapper.writeValueAsString(principal);
-        String encodedPrincipal = Base64.getEncoder().encodeToString(stringPrincipal.getBytes());
-        Cookie cookie = new Cookie(AUTH_COOKIE_NAME, encodedPrincipal);
+        AuthCookieDto authCookie = mvcConversionService.convert(user, AuthCookieDto.class);
+        String stringCookie = objectMapper.writeValueAsString(authCookie);
+        String encodedCookie = Base64.getEncoder().encodeToString(stringCookie.getBytes());
+        Cookie cookie = new Cookie(AUTH_COOKIE_NAME, encodedCookie);
         cookie.setHttpOnly(true);
         return cookie;
     }
