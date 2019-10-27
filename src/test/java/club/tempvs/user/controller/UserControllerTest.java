@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 
 import club.tempvs.user.component.CookieHelper;
 import club.tempvs.user.domain.User;
-import club.tempvs.user.dto.RegisterDto;
+import club.tempvs.user.dto.CredentialsDto;
 import club.tempvs.user.dto.UserDto;
 import club.tempvs.user.service.EmailVerificationService;
 import club.tempvs.user.service.UserService;
@@ -43,24 +43,25 @@ public class UserControllerTest {
     @Mock
     private Cookie cookie;
     @Mock
-    private RegisterDto registerDto;
+    private CredentialsDto credentialsDto;
 
     @Test
     public void testVerify() {
         String verificationId = "verification id";
         String password = "password";
 
-        when(registerDto.getPassword()).thenReturn(password);
+        when(credentialsDto.getPassword()).thenReturn(password);
         when(userService.register(verificationId, password)).thenReturn(user);
         when(mvcConversionService.convert(user, UserDto.class)).thenReturn(userDto);
         when(cookieHelper.buildAuthCookie(user)).thenReturn(cookie);
 
-        UserDto result = userController.verify(verificationId, registerDto, httpServletResponse);
+        UserDto result = userController.verify(verificationId, credentialsDto, httpServletResponse);
 
         verify(userService).register(verificationId, password);
         verify(mvcConversionService).convert(user, UserDto.class);
+        verify(cookieHelper).buildAuthCookie(user);
         verify(httpServletResponse).addCookie(cookie);
-        verifyNoMoreInteractions(userService, mvcConversionService, httpServletResponse);
+        verifyNoMoreInteractions(userService, mvcConversionService, cookieHelper, httpServletResponse);
 
         assertEquals("UserDto is returned", userDto, result);
     }
@@ -69,11 +70,29 @@ public class UserControllerTest {
     public void testRegister() {
         String email = "test@email.com";
 
-        when(registerDto.getEmail()).thenReturn(email);
+        when(credentialsDto.getEmail()).thenReturn(email);
 
-        userController.register(registerDto);
+        userController.register(credentialsDto);
 
         verify(emailVerificationService).create(email);
         verifyNoMoreInteractions(emailVerificationService);
+    }
+
+    @Test
+    public void testLogin() {
+        String email = "email@test.com";
+        String password = "password";
+
+        when(credentialsDto.getEmail()).thenReturn(email);
+        when(credentialsDto.getPassword()).thenReturn(password);
+        when(userService.login(email, password)).thenReturn(user);
+        when(cookieHelper.buildAuthCookie(user)).thenReturn(cookie);
+
+        userController.login(credentialsDto, httpServletResponse);
+
+        verify(userService).login(email, password);
+        verify(cookieHelper).buildAuthCookie(user);
+        verify(httpServletResponse).addCookie(cookie);
+        verifyNoMoreInteractions(userService, cookieHelper, httpServletResponse);
     }
 }

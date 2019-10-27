@@ -2,7 +2,7 @@ package club.tempvs.user.controller;
 
 import club.tempvs.user.component.CookieHelper;
 import club.tempvs.user.domain.User;
-import club.tempvs.user.dto.RegisterDto;
+import club.tempvs.user.dto.CredentialsDto;
 import club.tempvs.user.dto.UserDto;
 import club.tempvs.user.dto.validation.Scope;
 import club.tempvs.user.service.EmailVerificationService;
@@ -26,18 +26,28 @@ public class UserController {
     private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/register")
-    public void register(@RequestBody @Validated(Scope.Register.class) RegisterDto registerDto) {
-        emailVerificationService.create(registerDto.getEmail());
+    public void register(@RequestBody @Validated(Scope.Register.class) CredentialsDto credentialsDto) {
+        emailVerificationService.create(credentialsDto.getEmail());
     }
 
     @PostMapping("/verify/{verificationId}")
     public UserDto verify(
             @PathVariable String verificationId,
-            @RequestBody @Validated(Scope.Verify.class) RegisterDto registerDto,
+            @RequestBody @Validated(Scope.Verify.class) CredentialsDto credentialsDto,
             HttpServletResponse response) {
-        User user = userService.register(verificationId, registerDto.getPassword());
+        User user = userService.register(verificationId, credentialsDto.getPassword());
         Cookie authCookie = cookieHelper.buildAuthCookie(user);
         response.addCookie(authCookie);
         return mvcConversionService.convert(user, UserDto.class);
+    }
+
+    @PostMapping("/login")
+    public void login(@RequestBody @Validated(Scope.Login.class) CredentialsDto credentialsDto,
+                      HttpServletResponse response) {
+        String email = credentialsDto.getEmail();
+        String password = credentialsDto.getPassword();
+        User user = userService.login(email, password);
+        Cookie authCookie = cookieHelper.buildAuthCookie(user);
+        response.addCookie(authCookie);
     }
 }

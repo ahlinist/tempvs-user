@@ -9,4 +9,8 @@ public interface Scope {
     interface Verify {
 
     }
+
+    interface Login {
+
+    }
 }

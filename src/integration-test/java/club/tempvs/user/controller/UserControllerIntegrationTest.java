@@ -2,7 +2,7 @@ package club.tempvs.user.controller;
 
 import club.tempvs.user.amqp.EmailEventProcessor;
 import club.tempvs.user.domain.User;
-import club.tempvs.user.dto.RegisterDto;
+import club.tempvs.user.dto.CredentialsDto;
 import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.repository.UserRepository;
@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.test.binder.MessageCollector;
 import org.springframework.messaging.Message;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,8 @@ public class UserControllerIntegrationTest {
     private MessageCollector messageCollector;
     @Autowired
     private EmailEventProcessor emailEventProcessor;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     public void testRegister() throws Exception {
@@ -69,9 +72,9 @@ public class UserControllerIntegrationTest {
         File registerFile = ResourceUtils.getFile("classpath:user/register.json");
         String registerJson = new String(Files.readAllBytes(registerFile.toPath()));
 
-        RegisterDto registerDto = mapper.readValue(registerFile, RegisterDto.class);
+        CredentialsDto credentialsDto = mapper.readValue(registerFile, CredentialsDto.class);
 
-        User user = new User(registerDto.getEmail(), "password");
+        User user = new User(credentialsDto.getEmail(), "password");
         userRepository.save(user);
 
         mvc.perform(post("/api/register")
@@ -131,5 +134,58 @@ public class UserControllerIntegrationTest {
         assertThat(received.getPayload(), containsString("Registration at Tempvs"));
         assertThat(received.getPayload(), containsString("Greetings at Tempvs! To finish your registration follow the link below(valid for 24 hours):"));
         assertThat(received.getPayload(), containsString("http://localhost:8080/user/registration/"));
+    }
+
+    @Test
+    public void testLogin() throws Exception {
+        File loginFile = ResourceUtils.getFile("classpath:user/login.json");
+        String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
+
+        CredentialsDto credentialsDto = mapper.readValue(loginFile, CredentialsDto.class);
+
+        User user = new User(credentialsDto.getEmail(), passwordEncoder.encode(credentialsDto.getPassword()));
+        userRepository.save(user);
+
+        mvc.perform(post("/api/login")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(loginJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
+    }
+
+    @Test
+    public void testLoginForUnexistingUser() throws Exception {
+        File loginFile = ResourceUtils.getFile("classpath:user/login.json");
+        String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
+
+        User user = new User("some@email.com", "no matter what password");
+        userRepository.save(user);
+
+        mvc.perform(post("/api/login")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(loginJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testLoginForWrongCredentials() throws Exception {
+        File loginFile = ResourceUtils.getFile("classpath:user/login.json");
+        String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
+
+        CredentialsDto credentialsDto = mapper.readValue(loginFile, CredentialsDto.class);
+
+        User user = new User(credentialsDto.getEmail(), "some wrong password");
+        userRepository.save(user);
+
+        mvc.perform(post("/api/login")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(loginJson)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isUnauthorized());
     }
 }

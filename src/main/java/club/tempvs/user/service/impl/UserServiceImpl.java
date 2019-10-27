@@ -4,6 +4,7 @@ import club.tempvs.user.dao.EmailVerificationDao;
 import club.tempvs.user.dao.UserDao;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.domain.User;
+import club.tempvs.user.exception.UnauthorizedException;
 import club.tempvs.user.exception.UserAlreadyExistsException;
 import club.tempvs.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,18 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(password);
         User user = new User(email, encodedPassword);
         return userDao.save(user);
+    }
+
+    @Override
+    @Transactional
+    public User login(String email, String password) {
+        User user = userDao.get(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UnauthorizedException("Wrong credentials");
+        }
+
+        return user;
     }
 }
