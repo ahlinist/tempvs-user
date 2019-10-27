@@ -188,4 +188,28 @@ public class UserControllerIntegrationTest {
                 .header(AUTHORIZATION_HEADER, TOKEN))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    public void testLoginForInvalidEmail() throws Exception {
+
+        CredentialsDto credentialsDto = new CredentialsDto("invalidemail", "password");
+        String jsonString = mapper.writeValueAsString(credentialsDto);
+
+        mvc.perform(post("/api/login")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(jsonString)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isBadRequest());
+
+        credentialsDto = new CredentialsDto("", "");
+        jsonString = mapper.writeValueAsString(credentialsDto);
+
+        mvc.perform(post("/api/login")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(jsonString)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isBadRequest());
+    }
 }
