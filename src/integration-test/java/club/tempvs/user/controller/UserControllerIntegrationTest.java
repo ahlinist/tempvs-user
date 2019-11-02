@@ -127,7 +127,8 @@ public class UserControllerIntegrationTest {
                     .andExpect(jsonPath("email", is(email)))
                     .andExpect(jsonPath("currentProfileId", isEmptyOrNullString()))
                     .andExpect(jsonPath("timeZone", isEmptyOrNullString()))
-                    .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
+                    .andExpect(cookie().exists("TEMPVS_AUTH"))
+                    .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
 
         Message<String> received = (Message<String>) messageCollector.forChannel(emailEventProcessor.send()).poll();
         assertThat(received.getPayload(), containsString("test@email.com"));
@@ -152,7 +153,8 @@ public class UserControllerIntegrationTest {
                 .content(loginJson)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Set-Cookie", containsString("TEMPVS_AUTH=")));
+                .andExpect(cookie().exists("TEMPVS_AUTH"))
+                .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
     }
 
     @Test

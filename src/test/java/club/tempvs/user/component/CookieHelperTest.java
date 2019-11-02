@@ -18,8 +18,6 @@ import javax.servlet.http.Cookie;
 @RunWith(MockitoJUnitRunner.class)
 public class CookieHelperTest {
 
-    private static final String AUTH_COOKIE_NAME = "TEMPVS_AUTH";
-
     @InjectMocks
     private CookieHelper cookieHelper;
 
@@ -47,8 +45,20 @@ public class CookieHelperTest {
         verify(objectMapper).writeValueAsString(authCookieDto);
         verifyNoMoreInteractions(conversionService, objectMapper);
 
-        assertEquals("", encodedPrincipal, result.getValue());
+        assertEquals("Result cookie has encoded principal value", encodedPrincipal, result.getValue());
         assertTrue("The cookie is http only", result.isHttpOnly());
-        assertEquals("Result cookie has correct name", AUTH_COOKIE_NAME, result.getName());
+        assertEquals("Result cookie has correct name", "TEMPVS_AUTH", result.getName());
+        assertEquals("Result cookie root path", "/", result.getPath());
+        assertEquals("Result cookie expires in Integer.MAX_VALUE", Integer.MAX_VALUE, result.getMaxAge());
+    }
+
+    @Test
+    public void testBuildLoggedInCookie() {
+        Cookie result = cookieHelper.buildLoggedInCookie();
+        assertEquals("The result cookie has 'true' value", "true", result.getValue());
+        assertTrue("The cookie is not http only", !result.isHttpOnly());
+        assertEquals("The result cookie has correct name", "TEMPVS_LOGGED_IN", result.getName());
+        assertEquals("The result cookie root path", "/", result.getPath());
+        assertEquals("Result cookie expires in Integer.MAX_VALUE", Integer.MAX_VALUE, result.getMaxAge());
     }
 }

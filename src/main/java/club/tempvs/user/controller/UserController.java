@@ -37,7 +37,9 @@ public class UserController {
             HttpServletResponse response) {
         User user = userService.register(verificationId, credentialsDto.getPassword());
         Cookie authCookie = cookieHelper.buildAuthCookie(user);
+        Cookie loggedInCookie = cookieHelper.buildLoggedInCookie();
         response.addCookie(authCookie);
+        response.addCookie(loggedInCookie);
         return mvcConversionService.convert(user, UserDto.class);
     }
 
@@ -48,6 +50,8 @@ public class UserController {
         String password = credentialsDto.getPassword();
         User user = userService.login(email, password);
         Cookie authCookie = cookieHelper.buildAuthCookie(user);
+        Cookie loggedInCookie = cookieHelper.buildLoggedInCookie();
         response.addCookie(authCookie);
+        response.addCookie(loggedInCookie);
     }
 }
