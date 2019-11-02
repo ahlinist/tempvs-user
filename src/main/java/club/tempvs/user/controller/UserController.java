@@ -54,4 +54,12 @@ public class UserController {
         response.addCookie(authCookie);
         response.addCookie(loggedInCookie);
     }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletResponse response) {
+        Cookie authCookie = cookieHelper.clearAuthCookie();
+        Cookie loggedInCookie = cookieHelper.clearLoggedInCookie();
+        response.addCookie(authCookie);
+        response.addCookie(loggedInCookie);
+    }
 }

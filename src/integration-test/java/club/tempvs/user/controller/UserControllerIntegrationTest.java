@@ -3,6 +3,7 @@ package club.tempvs.user.controller;
 import club.tempvs.user.amqp.EmailEventProcessor;
 import club.tempvs.user.domain.User;
 import club.tempvs.user.dto.CredentialsDto;
+import club.tempvs.user.dto.TempvsPrincipal;
 import club.tempvs.user.repository.EmailVerificationRepository;
 import club.tempvs.user.domain.EmailVerification;
 import club.tempvs.user.repository.UserRepository;
@@ -22,6 +23,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Locale;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -35,14 +37,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 public class UserControllerIntegrationTest {
 
+    private static final String USER_INFO_HEADER = "User-Info";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String TOKEN = "df41895b9f26094d0b1d39b7bdd9849e"; //security_token as MD5
 
-    private static ObjectMapper mapper = new ObjectMapper();
-
     @Autowired
     private MockMvc mvc;
-
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
     @Autowired
@@ -72,7 +74,7 @@ public class UserControllerIntegrationTest {
         File registerFile = ResourceUtils.getFile("classpath:user/register.json");
         String registerJson = new String(Files.readAllBytes(registerFile.toPath()));
 
-        CredentialsDto credentialsDto = mapper.readValue(registerFile, CredentialsDto.class);
+        CredentialsDto credentialsDto = objectMapper.readValue(registerFile, CredentialsDto.class);
 
         User user = new User(credentialsDto.getEmail(), "password");
         userRepository.save(user);
@@ -142,7 +144,7 @@ public class UserControllerIntegrationTest {
         File loginFile = ResourceUtils.getFile("classpath:user/login.json");
         String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
 
-        CredentialsDto credentialsDto = mapper.readValue(loginFile, CredentialsDto.class);
+        CredentialsDto credentialsDto = objectMapper.readValue(loginFile, CredentialsDto.class);
 
         User user = new User(credentialsDto.getEmail(), passwordEncoder.encode(credentialsDto.getPassword()));
         userRepository.save(user);
@@ -178,7 +180,7 @@ public class UserControllerIntegrationTest {
         File loginFile = ResourceUtils.getFile("classpath:user/login.json");
         String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
 
-        CredentialsDto credentialsDto = mapper.readValue(loginFile, CredentialsDto.class);
+        CredentialsDto credentialsDto = objectMapper.readValue(loginFile, CredentialsDto.class);
 
         User user = new User(credentialsDto.getEmail(), "some wrong password");
         userRepository.save(user);
@@ -195,7 +197,7 @@ public class UserControllerIntegrationTest {
     public void testLoginForInvalidEmail() throws Exception {
 
         CredentialsDto credentialsDto = new CredentialsDto("invalidemail", "password");
-        String jsonString = mapper.writeValueAsString(credentialsDto);
+        String jsonString = objectMapper.writeValueAsString(credentialsDto);
 
         mvc.perform(post("/api/login")
                 .accept(APPLICATION_JSON_VALUE)
@@ -205,7 +207,7 @@ public class UserControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         credentialsDto = new CredentialsDto("", "");
-        jsonString = mapper.writeValueAsString(credentialsDto);
+        jsonString = objectMapper.writeValueAsString(credentialsDto);
 
         mvc.perform(post("/api/login")
                 .accept(APPLICATION_JSON_VALUE)
@@ -213,5 +215,26 @@ public class UserControllerIntegrationTest {
                 .content(jsonString)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testLogout() throws Exception {
+        String userInfoValue = buildUserInfoValue(1L);
+
+        mvc.perform(post("/api/logout")
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .header(USER_INFO_HEADER, userInfoValue)
+                .header(AUTHORIZATION_HEADER, TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("TEMPVS_AUTH"))
+                .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
+    }
+
+    private String buildUserInfoValue(Long id) throws Exception {
+        TempvsPrincipal userInfo = new TempvsPrincipal();
+        userInfo.setUserId(id);
+        userInfo.setLang(Locale.ENGLISH.getLanguage());
+        return objectMapper.writeValueAsString(userInfo);
     }
 }

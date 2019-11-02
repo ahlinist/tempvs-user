@@ -35,10 +35,26 @@ public class CookieHelper {
         return cookie;
     }
 
+    public Cookie clearAuthCookie() {
+        Cookie cookie = new Cookie(AUTH_COOKIE_NAME, null);
+        cookie.setPath(COOKIE_ROOT_PATH);
+        cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
+        return cookie;
+    }
+
     public Cookie buildLoggedInCookie() {
         Cookie cookie = new Cookie(LOGGED_IN_COOKIE_NAME, LOGGED_IN_COOKIE_VALUE);
         cookie.setPath(COOKIE_ROOT_PATH);
         cookie.setMaxAge(Integer.MAX_VALUE);
+        cookie.setHttpOnly(false);
+        return cookie;
+    }
+
+    public Cookie clearLoggedInCookie() {
+        Cookie cookie = new Cookie(LOGGED_IN_COOKIE_NAME, null);
+        cookie.setPath(COOKIE_ROOT_PATH);
+        cookie.setMaxAge(0);
         cookie.setHttpOnly(false);
         return cookie;
     }

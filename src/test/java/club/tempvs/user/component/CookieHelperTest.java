@@ -53,6 +53,16 @@ public class CookieHelperTest {
     }
 
     @Test
+    public void testClearAuthCookie() {
+        Cookie result = cookieHelper.clearAuthCookie();
+        assertNull("The result cookie has no value", result.getValue());
+        assertTrue("The cookie is http only", result.isHttpOnly());
+        assertEquals("The result cookie has correct name", "TEMPVS_AUTH", result.getName());
+        assertEquals("The result cookie root path", "/", result.getPath());
+        assertEquals("Result cookie expires immediately", 0, result.getMaxAge());
+    }
+
+    @Test
     public void testBuildLoggedInCookie() {
         Cookie result = cookieHelper.buildLoggedInCookie();
         assertEquals("The result cookie has 'true' value", "true", result.getValue());
@@ -60,5 +70,15 @@ public class CookieHelperTest {
         assertEquals("The result cookie has correct name", "TEMPVS_LOGGED_IN", result.getName());
         assertEquals("The result cookie root path", "/", result.getPath());
         assertEquals("Result cookie expires in Integer.MAX_VALUE", Integer.MAX_VALUE, result.getMaxAge());
+    }
+
+    @Test
+    public void testClearLoggedInCookie() {
+        Cookie result = cookieHelper.clearLoggedInCookie();
+        assertNull("The result cookie has no value", result.getValue());
+        assertTrue("The cookie is not http only", !result.isHttpOnly());
+        assertEquals("The result cookie has correct name", "TEMPVS_LOGGED_IN", result.getName());
+        assertEquals("The result cookie root path", "/", result.getPath());
+        assertEquals("Result cookie expires immediately", 0, result.getMaxAge());
     }
 }

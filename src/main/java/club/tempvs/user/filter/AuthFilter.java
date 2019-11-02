@@ -1,6 +1,4 @@
-package club.tempvs.user.interceptor;
-
-import static java.util.stream.Collectors.*;
+package club.tempvs.user.filter;
 
 import club.tempvs.user.dto.TempvsPrincipal;
 import club.tempvs.user.token.AuthToken;
@@ -8,32 +6,39 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.filter.GenericFilterBean;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
-@Component
+import static java.util.stream.Collectors.toSet;
+
 @RequiredArgsConstructor
-public class AuthInterceptor implements HandlerInterceptor {
+public class AuthFilter extends GenericFilterBean {
 
     private static final String USER_INFO_HEADER = "User-Info";
 
     private final ObjectMapper objectMapper;
 
     @Override
-    public boolean preHandle(
-            HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String userInfoHeaderValue = request.getHeader(USER_INFO_HEADER);
+    public void doFilter(ServletRequest request, ServletResponse response,
+                         FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        String userInfoHeaderValue = httpRequest.getHeader(USER_INFO_HEADER);
 
         if (!StringUtils.isEmpty(userInfoHeaderValue)) {
-            response.setHeader(USER_INFO_HEADER, userInfoHeaderValue);
+            httpResponse.setHeader(USER_INFO_HEADER, userInfoHeaderValue);
 
             TempvsPrincipal principal = objectMapper.readValue(userInfoHeaderValue, TempvsPrincipal.class);
             Set<String> roles = principal.getRoles();
@@ -41,13 +46,14 @@ public class AuthInterceptor implements HandlerInterceptor {
                     .map(SimpleGrantedAuthority::new)
                     .collect(toSet());
             AuthToken authToken = new AuthToken(principal, authorities);
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            securityContext.setAuthentication(authToken);
+            SecurityContextHolder.getContext()
+                    .setAuthentication(authToken);
 
-            String lang = principal.getLang();
-            LocaleContextHolder.setLocale(new Locale(lang));
+            Optional.ofNullable(principal.getLang())
+                    .map(Locale::new)
+                    .ifPresent(LocaleContextHolder::setLocale);
         }
 
-        return true;
+        chain.doFilter(httpRequest, httpResponse);
     }
 }

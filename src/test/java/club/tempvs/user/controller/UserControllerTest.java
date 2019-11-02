@@ -101,4 +101,18 @@ public class UserControllerTest {
         verify(httpServletResponse).addCookie(loggedInCookie);
         verifyNoMoreInteractions(userService, cookieHelper, httpServletResponse);
     }
+
+    @Test
+    public void testLogout() {
+        when(cookieHelper.clearAuthCookie()).thenReturn(authCookie);
+        when(cookieHelper.clearLoggedInCookie()).thenReturn(loggedInCookie);
+
+        userController.logout(httpServletResponse);
+
+        verify(cookieHelper).clearAuthCookie();
+        verify(cookieHelper).clearLoggedInCookie();
+        verify(httpServletResponse).addCookie(authCookie);
+        verify(httpServletResponse).addCookie(loggedInCookie);
+        verifyNoMoreInteractions(cookieHelper, httpServletResponse);
+    }
 }
