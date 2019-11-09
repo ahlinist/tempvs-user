@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-public class AuthCookieDto {
+public class UserInfoDto {
 
     private Long userId;
     private String email;

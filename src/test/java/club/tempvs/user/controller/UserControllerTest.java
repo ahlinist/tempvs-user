@@ -1,12 +1,9 @@
 package club.tempvs.user.controller;
 
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
-import club.tempvs.user.component.CookieHelper;
 import club.tempvs.user.domain.User;
 import club.tempvs.user.dto.CredentialsDto;
-import club.tempvs.user.dto.UserDto;
 import club.tempvs.user.service.EmailVerificationService;
 import club.tempvs.user.service.UserService;
 import org.junit.Test;
@@ -16,11 +13,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.convert.ConversionService;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserControllerTest {
+
+    private static final String REFRESH_COOKIES_HEADER = "Tempvs-Refresh-Cookies";
+    private static final String LOGOUT_HEADER = "Tempvs-Logout";
 
     @InjectMocks
     private UserController userController;
@@ -30,18 +29,12 @@ public class UserControllerTest {
     @Mock
     private ConversionService mvcConversionService;
     @Mock
-    private CookieHelper cookieHelper;
-    @Mock
     private EmailVerificationService emailVerificationService;
 
-    @Mock
-    private UserDto userDto;
     @Mock
     private User user;
     @Mock
     private HttpServletResponse httpServletResponse;
-    @Mock
-    private Cookie authCookie, loggedInCookie;
     @Mock
     private CredentialsDto credentialsDto;
 
@@ -49,24 +42,18 @@ public class UserControllerTest {
     public void testVerify() {
         String verificationId = "verification id";
         String password = "password";
+        String userInfo = "user info";
 
         when(credentialsDto.getPassword()).thenReturn(password);
         when(userService.register(verificationId, password)).thenReturn(user);
-        when(mvcConversionService.convert(user, UserDto.class)).thenReturn(userDto);
-        when(cookieHelper.buildAuthCookie(user)).thenReturn(authCookie);
-        when(cookieHelper.buildLoggedInCookie()).thenReturn(loggedInCookie);
+        when(mvcConversionService.convert(user, String.class)).thenReturn(userInfo);
 
-        UserDto result = userController.verify(verificationId, credentialsDto, httpServletResponse);
+        userController.verify(verificationId, credentialsDto, httpServletResponse);
 
         verify(userService).register(verificationId, password);
-        verify(mvcConversionService).convert(user, UserDto.class);
-        verify(cookieHelper).buildAuthCookie(user);
-        verify(cookieHelper).buildLoggedInCookie();
-        verify(httpServletResponse).addCookie(authCookie);
-        verify(httpServletResponse).addCookie(loggedInCookie);
-        verifyNoMoreInteractions(userService, mvcConversionService, cookieHelper, httpServletResponse);
-
-        assertEquals("UserDto is returned", userDto, result);
+        verify(mvcConversionService).convert(user, String.class);
+        verify(httpServletResponse).addHeader(REFRESH_COOKIES_HEADER, userInfo);
+        verifyNoMoreInteractions(userService, mvcConversionService, httpServletResponse);
     }
 
     @Test
@@ -85,34 +72,25 @@ public class UserControllerTest {
     public void testLogin() {
         String email = "email@test.com";
         String password = "password";
+        String userInfo = "user info";
 
         when(credentialsDto.getEmail()).thenReturn(email);
         when(credentialsDto.getPassword()).thenReturn(password);
         when(userService.login(email, password)).thenReturn(user);
-        when(cookieHelper.buildAuthCookie(user)).thenReturn(authCookie);
-        when(cookieHelper.buildLoggedInCookie()).thenReturn(loggedInCookie);
+        when(mvcConversionService.convert(user, String.class)).thenReturn(userInfo);
 
         userController.login(credentialsDto, httpServletResponse);
 
         verify(userService).login(email, password);
-        verify(cookieHelper).buildAuthCookie(user);
-        verify(cookieHelper).buildLoggedInCookie();
-        verify(httpServletResponse).addCookie(authCookie);
-        verify(httpServletResponse).addCookie(loggedInCookie);
-        verifyNoMoreInteractions(userService, cookieHelper, httpServletResponse);
+        verify(httpServletResponse).addHeader(REFRESH_COOKIES_HEADER, userInfo);
+        verifyNoMoreInteractions(userService, httpServletResponse);
     }
 
     @Test
     public void testLogout() {
-        when(cookieHelper.clearAuthCookie()).thenReturn(authCookie);
-        when(cookieHelper.clearLoggedInCookie()).thenReturn(loggedInCookie);
-
         userController.logout(httpServletResponse);
 
-        verify(cookieHelper).clearAuthCookie();
-        verify(cookieHelper).clearLoggedInCookie();
-        verify(httpServletResponse).addCookie(authCookie);
-        verify(httpServletResponse).addCookie(loggedInCookie);
-        verifyNoMoreInteractions(cookieHelper, httpServletResponse);
+        verify(httpServletResponse).addHeader(LOGOUT_HEADER, "");
+        verifyNoMoreInteractions(httpServletResponse);
     }
 }

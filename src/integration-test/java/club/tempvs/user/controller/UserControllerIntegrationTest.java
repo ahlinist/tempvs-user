@@ -37,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 public class UserControllerIntegrationTest {
 
+    private static final String REFRESH_COOKIES_HEADER = "Tempvs-Refresh-Cookies";
+    private static final String LOGOUT_HEADER = "Tempvs-Logout";
     private static final String USER_INFO_HEADER = "User-Info";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String TOKEN = "df41895b9f26094d0b1d39b7bdd9849e"; //security_token as MD5
@@ -126,11 +128,7 @@ public class UserControllerIntegrationTest {
                 .content(createUserJson)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("email", is(email)))
-                    .andExpect(jsonPath("currentProfileId", isEmptyOrNullString()))
-                    .andExpect(jsonPath("timeZone", isEmptyOrNullString()))
-                    .andExpect(cookie().exists("TEMPVS_AUTH"))
-                    .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
+                    .andExpect(header().exists(REFRESH_COOKIES_HEADER));
 
         Message<String> received = (Message<String>) messageCollector.forChannel(emailEventProcessor.send()).poll();
         assertThat(received.getPayload(), containsString("test@email.com"));
@@ -155,8 +153,7 @@ public class UserControllerIntegrationTest {
                 .content(loginJson)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("TEMPVS_AUTH"))
-                .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
+                .andExpect(header().exists(REFRESH_COOKIES_HEADER));
     }
 
     @Test
@@ -227,8 +224,7 @@ public class UserControllerIntegrationTest {
                 .header(USER_INFO_HEADER, userInfoValue)
                 .header(AUTHORIZATION_HEADER, TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("TEMPVS_AUTH"))
-                .andExpect(cookie().exists("TEMPVS_LOGGED_IN"));
+                .andExpect(header().exists(LOGOUT_HEADER));
     }
 
     private String buildUserInfoValue(Long id) throws Exception {
