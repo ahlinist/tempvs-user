@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
 public class UserController {
 
     private final UserService userService;
