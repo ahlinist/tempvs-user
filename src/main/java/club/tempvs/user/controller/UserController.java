@@ -38,7 +38,7 @@ public class UserController {
         response.addHeader(REFRESH_COOKIES_HEADER, userInfo);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/api/user/login")
     public void login(@RequestBody @Validated(Scope.Login.class) CredentialsDto credentialsDto,
                       HttpServletResponse response) {
         String email = credentialsDto.getEmail();
@@ -48,7 +48,7 @@ public class UserController {
         response.addHeader(REFRESH_COOKIES_HEADER, userInfo);
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/api/user/logout")
     public void logout(HttpServletResponse response) {
         response.addHeader(LOGOUT_HEADER, "");
     }

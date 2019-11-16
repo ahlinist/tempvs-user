@@ -147,7 +147,7 @@ public class UserControllerIntegrationTest {
         User user = new User(credentialsDto.getEmail(), passwordEncoder.encode(credentialsDto.getPassword()));
         userRepository.save(user);
 
-        mvc.perform(post("/login")
+        mvc.perform(post("/api/user/login")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(loginJson)
@@ -182,7 +182,7 @@ public class UserControllerIntegrationTest {
         User user = new User(credentialsDto.getEmail(), "some wrong password");
         userRepository.save(user);
 
-        mvc.perform(post("/login")
+        mvc.perform(post("/api/user/login")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(loginJson)
@@ -196,7 +196,7 @@ public class UserControllerIntegrationTest {
         CredentialsDto credentialsDto = new CredentialsDto("invalidemail", "password");
         String jsonString = objectMapper.writeValueAsString(credentialsDto);
 
-        mvc.perform(post("/login")
+        mvc.perform(post("/api/user/login")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(jsonString)
@@ -218,7 +218,7 @@ public class UserControllerIntegrationTest {
     public void testLogout() throws Exception {
         String userInfoValue = buildUserInfoValue(1L);
 
-        mvc.perform(post("/logout")
+        mvc.perform(post("/api/user/logout")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .header(USER_INFO_HEADER, userInfoValue)
