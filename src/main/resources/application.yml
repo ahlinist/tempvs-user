@@ -60,6 +60,8 @@ ribbon:
 security:
   user:
     password: ${eureka.password}
+app:
+  base-url: ${APP_HOST:http://localhost:8080}
 ---
 spring:
   profiles: local
@@ -67,7 +69,5 @@ eureka:
   instance:
     homePageUrl: http://${eureka.instance.hostname}:8088/
     non-secure-port: 8088
-app:
-  base-url: ${APP_HOST:http://localhost:8080}
 scheduling:
   enabled: true
