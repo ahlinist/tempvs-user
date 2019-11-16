@@ -164,7 +164,7 @@ public class UserControllerIntegrationTest {
         User user = new User("some@email.com", "no matter what password");
         userRepository.save(user);
 
-        mvc.perform(post("/login")
+        mvc.perform(post("/api/user/login")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(loginJson)
@@ -206,7 +206,7 @@ public class UserControllerIntegrationTest {
         credentialsDto = new CredentialsDto("", "");
         jsonString = objectMapper.writeValueAsString(credentialsDto);
 
-        mvc.perform(post("/login")
+        mvc.perform(post("/api/user/login")
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(jsonString)
