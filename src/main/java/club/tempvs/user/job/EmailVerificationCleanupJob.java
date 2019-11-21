@@ -2,13 +2,11 @@ package club.tempvs.user.job;
 
 import club.tempvs.user.service.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "scheduling.enabled", havingValue = "true")
 public class EmailVerificationCleanupJob {
 
     private static final long ONE_HOUR_IN_MS = 60 * 60 * 1000;

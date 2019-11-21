@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -23,6 +24,7 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
 
+@Component
 @RequiredArgsConstructor
 public class AuthFilter extends GenericFilterBean {
 

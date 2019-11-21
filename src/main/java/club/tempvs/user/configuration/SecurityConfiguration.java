@@ -1,7 +1,6 @@
 package club.tempvs.user.configuration;
 
 import club.tempvs.user.filter.AuthFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +18,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private final ObjectMapper objectMapper;
+    private final AuthFilter authFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -31,7 +30,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .logout().disable()
-                .addFilterBefore(new AuthFilter(objectMapper), BasicAuthenticationFilter.class)
+                .addFilterBefore(authFilter, BasicAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
