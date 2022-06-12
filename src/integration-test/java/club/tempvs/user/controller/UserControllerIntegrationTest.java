@@ -143,6 +143,7 @@ public class UserControllerIntegrationTest {
     public void testLogin() throws Exception {
         File loginFile = ResourceUtils.getFile("classpath:user/login.json");
         String loginJson = new String(Files.readAllBytes(loginFile.toPath()));
+        String referer = "https://my-host.com";
 
         CredentialsDto credentialsDto = objectMapper.readValue(loginFile, CredentialsDto.class);
 
@@ -153,9 +154,11 @@ public class UserControllerIntegrationTest {
                 .accept(APPLICATION_JSON_VALUE)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(loginJson)
-                .header(AUTHORIZATION_HEADER, TOKEN))
-                .andExpect(status().isOk())
-                .andExpect(header().exists(REFRESH_COOKIES_HEADER));
+                .header(AUTHORIZATION_HEADER, TOKEN)
+                .header("Referer", referer))
+                    .andExpect(status().isFound())
+                    .andExpect(header().exists(REFRESH_COOKIES_HEADER))
+                    .andExpect(header().string("Location", referer));
     }
 
     @Test

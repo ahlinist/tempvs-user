@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.convert.ConversionService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -33,6 +34,8 @@ public class UserControllerTest {
 
     @Mock
     private User user;
+    @Mock
+    private HttpServletRequest httpServletRequest;
     @Mock
     private HttpServletResponse httpServletResponse;
     @Mock
@@ -73,17 +76,21 @@ public class UserControllerTest {
         String email = "email@test.com";
         String password = "password";
         String userInfo = "user info";
+        String referer = "https://my-host.com/1";
 
         when(credentialsDto.getEmail()).thenReturn(email);
         when(credentialsDto.getPassword()).thenReturn(password);
         when(userService.login(email, password)).thenReturn(user);
+        when(httpServletRequest.getHeader("Referer")).thenReturn(referer);
         when(mvcConversionService.convert(user, String.class)).thenReturn(userInfo);
 
-        userController.login(credentialsDto, httpServletResponse);
+        userController.login(credentialsDto, httpServletRequest, httpServletResponse);
 
         verify(userService).login(email, password);
+        verify(httpServletRequest).getHeader("Referer");
         verify(httpServletResponse).addHeader(REFRESH_COOKIES_HEADER, userInfo);
-        verifyNoMoreInteractions(userService, httpServletResponse);
+        verify(httpServletResponse).addHeader("Location", "https://my-host.com/1");
+        verifyNoMoreInteractions(userService, httpServletRequest, httpServletResponse);
     }
 
     @Test

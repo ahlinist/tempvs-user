@@ -7,9 +7,12 @@ import club.tempvs.user.service.EmailVerificationService;
 import club.tempvs.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -39,13 +42,16 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @ResponseStatus(HttpStatus.FOUND)
     public void login(@RequestBody @Validated(Scope.Login.class) CredentialsDto credentialsDto,
-                      HttpServletResponse response) {
+                      HttpServletRequest request, HttpServletResponse response) {
+        String referer = request.getHeader(HttpHeaders.REFERER);
         String email = credentialsDto.getEmail();
         String password = credentialsDto.getPassword();
         User user = userService.login(email, password);
         String userInfo = mvcConversionService.convert(user, String.class);
         response.addHeader(REFRESH_COOKIES_HEADER, userInfo);
+        response.addHeader(HttpHeaders.LOCATION, referer);
     }
 
     @PostMapping("/logout")
